@@ -78,10 +78,10 @@ def random_optimize(domain, cost_func):
 		r = [random.randint(domain[i][0], domain[i][1]) for i in range(len(domain))]
 		cost = cost_func(r)
 		if cost < best:
-			# print("cost is %d" % cost)
+			print("current cost is %d" % cost)
 			best = cost
 			best_r = r
-	# print("best cost is %d" % best)
+	print("best cost is %d" % best)
 	return best_r
 
 
@@ -104,7 +104,7 @@ def hill_climb(domain, cost_func):
 		for j in range(len(neighbors)):
 			cost = cost_func(neighbors[j])
 			if cost < best:
-				# print("cost is %d" % cost)
+				print("current cost is %d" % cost)
 				best = cost
 				sol = neighbors[j]
 		# 如果没有更优的解
