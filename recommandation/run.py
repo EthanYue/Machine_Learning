@@ -1,0 +1,12 @@
+from recommandation.recommendations import critics, calSimilarItems, getRecommandedItems
+# print(critics['Lisa Rose']['Lady in the Water'])
+# print(critics['Toby'])
+# res = sim_distance(critics, 'Lisa Rose', 'Gene Seymour')
+# res = sim_pearson(critics, 'Lisa Rose', 'Gene Seymour')
+# res = topMatches(critics, 'Toby', 3)
+# res = getRecommandations(critics, 'Toby')
+# movies = transformPrefs(critics)
+# res = topMatches(movies, 'Superman Returns')
+itemsim = calSimilarItems(critics)
+res = getRecommandedItems(critics, itemsim, 'Toby')
+print(res)
