@@ -74,7 +74,7 @@ def schedule_cost(sol):
 def random_optimize(domain, cost_func):
 	best = 999999999
 	best_r = None
-	for i in range(100000):
+	for i in range(1000):
 		r = [random.randint(domain[i][0], domain[i][1]) for i in range(len(domain))]
 		cost = cost_func(r)
 		if cost < best:
