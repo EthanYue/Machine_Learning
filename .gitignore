@@ -10,3 +10,4 @@ env.py
 *.ini
 *.mako
 *_.py
+*.db
