@@ -1,5 +1,6 @@
 import re
 import math
+import pymysql
 
 
 def sample_train(_class):
@@ -27,37 +28,52 @@ class classifier:
 		# 统计每个分类中的文档数量
 		self.c_c = {}
 		self.get_features = get_features
+		self.db = pymysql.connect('localhost', 'root', 'yuefeiyu', 'doc_class')
+		self.cur = self.db.cursor()
+		
+	def set_db(self):
+		self.cur.execute('create table if not exists f_c(feature varchar(512), category varchar(512), count int)')
+		self.cur.execute('create table if not exists c_c(category varchar(512), count int)')
 	
 	# 增加对特征/分类组合的计数值
 	def inc_f(self, f, cat):
-		self.f_c.setdefault(f, {})
-		self.f_c[f].setdefault(cat, 0)
-		self.f_c[f][cat] += 1
+		count = self.f_count(f, cat)
+		if count == 0:
+			self.cur.execute("insert into f_c values ('%s', '%s', 1)" % (f, cat))
+		else:
+			self.cur.execute("update f_c set count=%d where feature='%s' and category='%s'" % (count+1, f, cat))
 	
 	# 增加对某一分类的计数值
 	def inc_c(self, cat):
-		self.c_c.setdefault(cat, 0)
-		self.c_c[cat] += 1
+		count = self.c_count(cat)
+		if count == 0:
+			self.cur.execute("insert into c_c values ('%s', 1)" % cat)
+		else:
+			self.cur.execute("update c_c set count=%d where category='%s'" % (count+1, cat))
 	
 	# 某一分类特征出现于某一分类中的次数
 	def f_count(self, f, cat):
-		if f in self.f_c and cat in self.f_c[f]:
-			return float(self.f_c[f][cat])
-		return 0.0
+		self.cur.execute("select count from f_c where feature='%s' and category='%s'" % ( f, cat))
+		res = self.cur.fetchone()
+		return 0 if res is None else float(res[0])
 	
 	# 属于某一分类的内容项数量
 	def c_count(self, cat):
-		if cat in self.c_c:
-			return float(self.c_c[cat])
-		return 0
+		self.cur.execute("select count from c_c where category='%s'" % cat)
+		res = self.cur.fetchone()
+		return 0 if res is None else float(res[0])
 	
 	# 所有内容项的数量
 	def total_count(self):
-		return sum(self.c_c.values())
+		self.cur.execute('select sum(count) from c_c')
+		res = self.cur.fetchone()
+		return 0 if res is None else float(res[0])
 	
 	# 所有分类的列表
 	def categories(self):
-		return self.c_c.keys()
+		self.cur.execute('select category from c_c')
+		res = self.cur.fetchall()
+		return [_res[0] for _res in res]
 	
 	def train(self, item, cat):
 		features = self.get_features(item)
@@ -65,7 +81,12 @@ class classifier:
 		for f in features:
 			self.inc_f(f, cat)
 		self.inc_c(cat)
-	
+		try:
+			self.db.commit()
+		except Exception as e:
+			print('train failed')
+			print(e)
+		
 	def f_prob(self, f, cat):
 		if self.c_count(cat) == 0:
 			return 0
