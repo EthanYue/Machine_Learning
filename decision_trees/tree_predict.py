@@ -1,20 +1,20 @@
 from PIL import Image, ImageDraw
 
-my_data = [['slashdot', 'USA', 'yes', '18', 'None'],
-           ['google', 'France', 'yes', '23', 'Premium'],
-           ['digg', 'USA', 'yes', '24', 'Basic'],
-           ['kiwitobes', 'France', 'yes', '23', 'Basic'],
-           ['google', 'UK', 'no', '21', 'Premium'],
-           ['(direct)', 'New Zealand', 'no', '12', 'None'],
-           ['(direct)', 'UK', 'no', '21', 'Basic'],
-           ['google', 'USA', 'no', '24', 'Premium'],
-           ['slashdot', 'France', 'yes', '19', 'None'],
-           ['digg', 'USA', 'no', '18', 'None'],
-           ['google', 'UK', 'no', '18', 'None'],
-           ['kiwitobes', 'UK', 'no', '19', 'None'],
-           ['digg', 'New Zealand', 'yes', '12', 'Basic'],
-           ['google', 'UK', 'yes', '18', 'Basic'],
-           ['kiwitobes', 'France', 'yes', '19', 'Basic']]
+my_data = [['slashdot', 'USA', 'yes', 18, 'None'],
+           ['google', 'France', 'yes', 23, 'Premium'],
+           ['digg', 'USA', 'yes', 24, 'Basic'],
+           ['kiwitobes', 'France', 'yes', 23, 'Basic'],
+           ['google', 'UK', 'no', 21, 'Premium'],
+           ['(direct)', 'New Zealand', 'no', 12, 'None'],
+           ['(direct)', 'UK', 'no', 21, 'Basic'],
+           ['google', 'USA', 'no', 24, 'Premium'],
+           ['slashdot', 'France', 'yes', 19, 'None'],
+           ['digg', 'USA', 'no', 18, 'None'],
+           ['google', 'UK', 'no', 18, 'None'],
+           ['kiwitobes', 'UK', 'no', 19, 'None'],
+           ['digg', 'New Zealand', 'yes', 12, 'Basic'],
+           ['google', 'UK', 'yes', 18, 'Basic'],
+           ['kiwitobes', 'France', 'yes', 19, 'Basic']]
 
 
 class decision_node:
@@ -32,7 +32,8 @@ class decision_node:
 		self.tb = tb
 		self.fb = fb
 
-def divide_set( rows, column, value):
+
+def divide_set(rows, column, value):
 	# 定义一个函数， 获得数据行属于第一组（返回值为true）还是第二组（返回值为false）
 	split_function = None
 	if isinstance(value, int) or isinstance(value, float):
@@ -42,7 +43,7 @@ def divide_set( rows, column, value):
 	# 将数据集拆分成两个集合
 	set1 = [row for row in rows if split_function(row)]
 	set2 = [row for row in rows if not split_function(row)]
-	return (set1, set2)
+	return set1, set2
 
 
 # 对各种可能的结果进行计数
@@ -113,13 +114,33 @@ def build_tree(rows, score_func=entropy):
 	if best_gain > 0:
 		true_branch = build_tree(best_sets[0])
 		false_branch = build_tree(best_sets[1])
-		return decision_node(col=best_criteria[0], value=best_criteria, tb=true_branch, fb=false_branch)
+		return decision_node(col=best_criteria[0], value=best_criteria[1], tb=true_branch, fb=false_branch)
 	else:
 		return decision_node(results=unique_counts(rows))
 
 
+def classify(observation, tree):
+	if tree.results is not None:
+		return tree.results
+	else:
+		v = observation[tree.col]
+		branch = None
+		if isinstance(v, int) or isinstance(v, float):
+			if v >= tree.value:
+				branch = tree.tb
+			else:
+				branch = tree.fb
+		else:
+			if v == tree.value:
+				branch = tree.tb
+			else:
+				branch = tree.fb
+		return classify(observation, branch)
+
+
+
 def print_tree(tree, indent=''):
-	if tree.results != None:
+	if tree.results is not None:
 		print(str(tree.results))
 	else:
 		print(str(tree.col) + ':' + str(tree.value) +'? ')
@@ -142,6 +163,7 @@ def get_depth(tree):
 		return 0
 	return max(get_depth(tree.tb), get_depth(tree.fb)) + 1
 
+
 # 绘制树
 def draw_tree(tree, jpeg='tree.jpg'):
 	w = get_width(tree) * 100
@@ -152,8 +174,9 @@ def draw_tree(tree, jpeg='tree.jpg'):
 	img.save(jpeg, 'JPEG')
 	
 
+# 绘制节点，右边为真
 def draw_node(draw, tree, x, y):
-	if tree.results == None:
+	if tree.results is None:
 		w1 = get_width(tree.fb) * 100
 		w2 = get_width(tree.tb) * 100
 		left = x - (w1 + w2) / 2
