@@ -189,3 +189,68 @@ def draw_node(draw, tree, x, y):
 	else:
 		txt = ' \n'.join(['%s:%d' % v for v in tree.results.items()])
 		draw.text((x-20, y), txt, (0, 0, 0))
+
+
+# 剪枝
+def prune(tree, min_gain):
+	# 如果分支不是叶节点则剪枝
+	if tree.tb.results is None:
+		prune(tree.tb, min_gain)
+	if tree.fb.results is None:
+		prune(tree.fb, min_gain)
+	# 如果两个子节点都是叶节点，则判断是否需要合并
+	if tree.tb.results is not None and tree.fb.results is not None:
+		tb, fb = [], []
+		for v, c in tree.tb.results.items():
+			tb += [[v]] * c
+		for v, c in tree.fb.results.items():
+			fb += [[v]] * c
+		# 判断熵的减少是否低于最小阈值
+		delta = entropy(tb+fb) - (entropy(tb) + entropy(fb) / 2)
+		if delta < min_gain:
+			# 合并分支
+			tree.tb, tree.fb = None, None
+			tree.results = unique_counts(tb+fb)
+
+
+# 处理确实数据
+def md_classify(observation, tree):
+	if tree.results is not None:
+		return tree.results
+	else:
+		v = observation[tree.col]
+		if v is None:
+			tr, fr = md_classify(observation, tree.tb), md_classify(observation, tree.fb)
+			t_count = sum(tr.values())
+			f_count = sum(fr.values())
+			t_weight = t_count / (t_count + f_count)
+			f_weight = f_count / (t_count + f_count)
+			result = {}
+			for k, v in tr.items():
+				result[k] = v * t_weight
+			for k, v in fr.items():
+				if k not in result:
+					result[k] = 0
+				result[k] = v * f_weight
+			return result
+		else:
+			if isinstance(v, int) or isinstance(v, float):
+				if v >= tree.value:
+					branch = tree.tb
+				else:
+					branch = tree.fb
+			else:
+				if v == tree.value:
+					branch = tree.tb
+				else:
+					branch = tree.fb
+			return md_classify(observation, branch)
+
+
+def variance(rows):
+	if len(rows) == 0:
+		return 0
+	data = [float(row[len(row)-1]) for row in rows]
+	mean = sum(data) / len(data)
+	variance = sum([(d-mean) ** 2 for d in data]) / len(data)
+	return variance
