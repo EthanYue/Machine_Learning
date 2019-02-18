@@ -127,8 +127,8 @@ def test_algorithm(alg_func, train_set, test_set):
 	error = 0.0
 	for row in test_set:
 		guess = alg_func(train_set, row['input'])
-		error += (row['result'] - guess) ** 2
-	return error/len(test_set)
+		error += ((row['result'] - guess) ** 2)
+	return error / len(test_set)
 
 
 # 交叉验证
