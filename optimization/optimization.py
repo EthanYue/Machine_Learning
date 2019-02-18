@@ -11,14 +11,14 @@ people = [('Seymour', 'BOS'),
 
 destination = 'LGA'
 
-flights = {}
-with open('schedule.txt') as f:
-	lines = f.readlines()
-	for line in lines:
-		origin, dest, depart, arrive, price = line.strip().split(',')
-		flights.setdefault((origin, dest), [])
-		
-		flights[(origin, dest)].append((depart, arrive, int(price)))
+# flights = {}
+# with open('schedule.txt') as f:
+# 	lines = f.readlines()
+# 	for line in lines:
+# 		origin, dest, depart, arrive, price = line.strip().split(',')
+# 		flights.setdefault((origin, dest), [])
+#
+# 		flights[(origin, dest)].append((depart, arrive, int(price)))
 
 def get_minutes(t):
 	x = time.strptime(t, "%H:%M")
@@ -115,7 +115,7 @@ def hill_climb(domain, cost_func):
 	
 	
 # 退火算法
-def annealing_optimize(domain, cost_func, T=1000000.0, cool=0.999, step=1):
+def annealing_optimize(domain, cost_func, T=1000.0, cool=0.95, step=1):
 	"""
 	:param domain:
 	:param cost_func:
