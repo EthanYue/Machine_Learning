@@ -1,5 +1,6 @@
 from random import random, randint
 import math
+from pylab import arange, plot, show, array
 
 weight_domain = [(0, 20)] * 4
 
@@ -42,6 +43,13 @@ def wine_set2():
 		rows.append({'input': (rating, age, aisle, bottle_size), 'result': price})
 	return rows
 
+
+def wine_set3():
+	rows = wine_set1()
+	for row in rows:
+		if random() < 0.5:
+			row['result'] *= 0.5
+	return rows
 
 # 将不同变量按比例缩放
 def rescale(data, scale):
@@ -146,4 +154,48 @@ def create_cost_func(alg_func, data):
 		s_data = rescale(data, scale)
 		return cross_validate(alg_func, s_data, trials=10)
 	return cost_func
+
+
+# 估计概率密度
+def prob_guess(data, vec1, low, high, k=5, weight_func=gaussian):
+	d_list = get_distances(data, vec1)
+	n_weight = 0.0
+	t_weight = 0.0
+	for i in range(k):
+		dist = d_list[i][0]
+		idx = d_list[i][1]
+		weight = weight_func(dist)
+		v = data[idx]['result']
+		# 当前数据点是否位于指定范围内
+		if v >= low and v <= high:
+			n_weight += weight
+		t_weight += weight
+	if t_weight == 0:
+		return 0
+	# 概率等于位于指定范围的权重值除以所有权重值
+	return n_weight / t_weight
+
+
+# 绘制概率分布曲线图
+def cumulative_graph(data, vec1, high, k=5, weight_func=gaussian):
+	t1 = arange(0.0, high, 0.001)
+	c_prob = array([prob_guess(data, vec1, 0, v, k, weight_func) for v in t1])
+	plot(t1, c_prob)
+	show()
+	
+	
+def prob_graph(data, vec1, high, k=5, weight_func=gaussian, ss=4.0):
+	t1 = arange(0.0, high, 0.1)
+	probs = [prob_guess(data, vec1, v, v+0.1, k, weight_func) for v in t1]
+	smoothed = []
+	for i in range(len(probs)):
+		sv = 0.0
+		for j in range(0, len(probs)):
+			dist = abs(i - j) * 0.1
+			weight = gaussian(dist, sigma=ss)
+			sv += (weight * probs[j])
+		smoothed.append(sv)
+	smoothed = array(smoothed)
+	plot(t1, smoothed)
+	show()
 
