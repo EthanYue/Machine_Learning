@@ -137,7 +137,7 @@ def crossover(t1, t2, prob_swap=0.7, top=1):
 		return result
 
 
-def evolve(pc, pop_size, rank_function, max_gen=50, mutation_rate=0.1, breeding_rate=0.4, p_exp=0.7, p_new=0.05):
+def evolve(pc, pop_size, rank_function, max_gen=50, mutation_rate=0.1, breeding_rate=0.4, p_exp=0.7, p_new=0.1):
 	"""
 	:param pc: param_count
 	:param pop_size: 种群数量 
@@ -156,14 +156,14 @@ def evolve(pc, pop_size, rank_function, max_gen=50, mutation_rate=0.1, breeding_
 	for i in range(max_gen):
 		scores = rank_function(population)
 		print(scores[0][0])
-		# 如果找到最优解则推出
+		# 如果找到最优解则退出
 		if scores[0][0] == 0:
 			break
 		# 精英选拔
 		new_pop = [scores[0][1], scores[1][1]]
 		while len(new_pop) < pop_size:
 			# 如果满足引入新成员的概率则随机创建新成员，否则进行交叉变异
-			if random() > p_new:
+			if random() < p_new:
 				new_pop.append(mutate(crossover(scores[select_index()][1], scores[select_index()][1], prob_swap=breeding_rate), pc, prob_change=mutation_rate))
 			else:
 				new_pop.append(make_random_tree(pc))
