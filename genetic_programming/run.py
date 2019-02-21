@@ -3,8 +3,8 @@ import gp
 # example_tree.evaluate([5, 3])
 # example_tree.display()
 
-# random1 = gp.make_random_tree(2)
-# random2 = gp.make_random_tree(2)
+random1 = gp.make_random_tree(5)
+random2 = gp.make_random_tree(5)
 # print('random1 tree')
 # random1.display()
 # mutate = gp.mutate(random1, 2)
@@ -25,5 +25,8 @@ import gp
 # print(res1)
 # print(res2)
 
-rf = gp.get_rank_function(gp.build_hidden_set())
-gp.evolve(2, 500, rf)
+# rf = gp.get_rank_function(gp.build_hidden_set())
+# gp.evolve(2, 500, rf)
+
+winner = gp.evolve(5, 100, gp.tournament)
+# print(winner)

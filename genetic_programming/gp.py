@@ -163,7 +163,7 @@ def evolve(pc, pop_size, rank_function, max_gen=50, mutation_rate=0.1, breeding_
 		new_pop = [scores[0][1], scores[1][1]]
 		while len(new_pop) < pop_size:
 			# 如果满足引入新成员的概率则随机创建新成员，否则进行交叉变异
-			if random() < p_new:
+			if random() > p_new:
 				new_pop.append(mutate(crossover(scores[select_index()][1], scores[select_index()][1], prob_swap=breeding_rate), pc, prob_change=mutation_rate))
 			else:
 				new_pop.append(make_random_tree(pc))
@@ -178,3 +178,86 @@ def get_rank_function(data_set):
 		res = sorted(scores, key=lambda x: x[0])
 		return res
 	return rank_function
+
+
+def grid_game(p):
+	# 游戏区域
+	max = (3, 3)
+	# 记录玩家的上一步
+	last_move = [-1, -1]
+	# 记录玩家的位置
+	location = [[randint(0, max[0]), randint(0, max[1])]]
+	location.append([(location[0][0] + 2) % 4, (location[0][1] + 2) % 4])
+	# 最大移动步数
+	for s in range(50):
+		# 每位玩家
+		for i in range(2):
+			locs = location[i][:] + location[1-i][:]
+			locs.append(last_move[i])
+			move = p[i].evaluate(locs) % 4
+			# 如果两次移动相同，则判负
+			if last_move[i] == move:
+				# 返回获胜玩家
+				return 1-i
+			last_move[i] = move
+			if move == 0:
+				location[i][0] -= 1
+				# 限制游戏区域
+				if location[i][0] < 0:
+					location[i][0] = 0
+			if move == 1:
+				location[i][0] += 1
+				if location[i][0] > max[0]:
+					location[i][0] = max[0]
+			if move == 2:
+				location[i][1] += 1
+				if location[i][0] > max[1]:
+					location[i][1] = max[1]
+			# 如果双方走到同意位置，则分出胜负
+			if location[i] == location[1-i]:
+				return i
+	return -1
+
+
+def tournament(p1):
+	# 统计失败次数
+	losses = [0 for p in p1]
+	# 玩家一一对抗
+	for i in range(len(p1)):
+		for j in range(len(p1)):
+			if i == j:
+				continue
+			winner = grid_game([p1[i], p1[j]])
+			if winner == 0:
+				losses[j] += 2
+			elif winner == 1:
+				losses[i] += 2
+			elif winner == -1:
+				losses[i] += 1
+				losses[j] += 1
+				pass
+	z = zip(losses, p1)
+	res = sorted(z, key=lambda x: x[0])
+	return res
+	
+
+# class human_player:
+# 	def evaluate(self, board):
+# 		me = tuple(board[0:2])
+# 		others = [tuple(board[x:x+2]) for x in range(2, len(board)-1, 2)]
+# 		for i in range(4):
+# 			for j in range(4):
+# 				if (i, j) == me:
+# 					print('O ', end='')
+# 				elif (i, j) in others:
+# 					print('X ', end='')
+# 				else:
+# 					print('. ', end='')
+# 			print()
+# 		print('Your last move was %d' % board[len(board)-1])
+# 		print(' 0')
+# 		print('2 3')
+# 		print(' 1')
+# 		print('Enter your move: ')
+# 		move = int(input())
+# 		return move
